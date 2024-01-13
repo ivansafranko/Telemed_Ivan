@@ -2,6 +2,7 @@ package com.telemed;
 
 import com.telemed.model.*;
 import com.telemed.model.Record;
+import com.telemed.tools.EmailSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,11 +25,11 @@ public class TelemedController {
     @Autowired
     RecordRepositoryDB recordRepository;
 
+    private EmailSender emailSender;
 
     public TelemedController() {
-
+        this.emailSender = new EmailSender();
     }
-
 
     @GetMapping("/patients")
     public String showPatients(Model model) {
@@ -41,8 +42,28 @@ public class TelemedController {
     String addNewUser(@RequestParam("fname") String fname, @RequestParam("lname") String lname,
                       @RequestParam("birthday") String birthday, @RequestParam("mbo") int mbo,
                       @RequestParam("email") String email, @RequestParam("password") String password, Model model) {
-        userRepository.save(new User(fname, lname, birthday, mbo, email, password));
+        //String password = generatePassword();
+        userRepository.save(new User(fname, lname, birthday, mbo, email, password, false));
+        emailSender.sendEmail(email, "Telemed racun", "Vas doktor je napravio racun za vas s lozinkom " + password + ". Prvi puta kada se ulogirate u sustav trebat cete kreirati novu lozinku.");
         return "redirect:/patients";
+    }
+
+    @GetMapping("/changePassword")
+    String showChangePassword(Model model) {
+        return "patient_password_change.html";
+    }
+
+    @GetMapping("/changePasswordAction")
+    String changePasswordAction(@RequestParam("password") String newPassword, @RequestParam("confirmPassword") String confirmPassword) {
+        if (!newPassword.equals(confirmPassword)) {
+            return "redirect:/records";
+        }else {
+            currentUser.setPassword(newPassword);
+            currentUser.setPasswordChanged();
+            userRepository.save(currentUser);
+
+            return "redirect:/records";
+        }
     }
 
     @GetMapping("/showEditPatient")
@@ -76,8 +97,6 @@ public class TelemedController {
         return "doctor_patient_overview.html";
     }
 
-
-
     @GetMapping("/login")
     public String login() {
         return "login.html";
@@ -92,22 +111,27 @@ public class TelemedController {
     public String loginProcess(@RequestParam("email") String email,
                                @RequestParam("password") String password, Model model){
 
-        User u = userRepository.findByEmailAndPassword(email, password);
+        User user = userRepository.findByEmailAndPassword(email, password);
 
-        if (u == null) {
+        if (user == null) {
             model.addAttribute("userMessage", "Korisnik nije pronađen!");
+            model.addAttribute("email", email);
+            model.addAttribute("password", password);
             return "login.html";
         } else {
-            currentUser = u;
+            currentUser = user;
 
-            if (u.getType() == 0) {
-                return "redirect:/records";
+            if (user.getType() == 0) {
+                if (!user.hasUpdatedPassword()) {
+                    return "redirect:/changePassword";
+                } else {
+                    return "redirect:/records";
+                }
             } else {
                 return "redirect:/patients";
             }
         }
     }
-
 
     @GetMapping("/doctorNewPatient")
     public String doctorNewPatient(Model model) {

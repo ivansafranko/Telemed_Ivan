@@ -1,5 +1,6 @@
 package com.telemed.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -17,17 +18,19 @@ public class User {
     private int mbo;
     private String email;
     private String password;
+    @Column(columnDefinition="BOOLEAN default 'FALSE'")
+    private boolean passwordUpdated;
 
     public User() {
-
     }
-    public User(String fname, String lname, String birthday, int mbo, String email, String password) {
+    public User(String fname, String lname, String birthday, int mbo, String email, String password, boolean passwordUpdated) {
         this.fname = fname;
         this.lname = lname;
         this.birthday = birthday;
         this.mbo = mbo;
         this.email = email;
         this.password = password;
+        this.passwordUpdated = passwordUpdated;
 
         id = idCounter++;
     }
@@ -102,5 +105,13 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public void setPasswordChanged() {
+        this.passwordUpdated = true;
+    }
+
+    public boolean hasUpdatedPassword() {
+        return this.passwordUpdated;
     }
 }

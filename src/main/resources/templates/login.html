@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,11 +27,12 @@
                     <p>Dobrodošli na Telemed sustav za praćenje vaših zdravstvenih podataka. Prijavite se</p>
                 </div>
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control form-control-lg bg-light fs-6" id="email" name="email" placeholder="Email adresa">
+                    <input type="text" th:value="${email}" class="form-control form-control-lg bg-light fs-6" id="email" name="email" placeholder="Email adresa">
                 </div>
                 <div class="input-group mb-1">
-                    <input type="password" class="form-control form-control-lg bg-light fs-6" id="password" name="password" placeholder="Lozinka">
+                    <input type="password" th:value="${password}" class="form-control form-control-lg bg-light fs-6" id="password" name="password" placeholder="Lozinka">
                 </div>
+                <p th:text="${userMessage}"></p>
                 <div class="input-group mb-5 d-flex justify-content-between">
                 </div>
                 <div class="input-group mb-3">

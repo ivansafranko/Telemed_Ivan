@@ -54,15 +54,21 @@ public class TelemedController {
     }
 
     @GetMapping("/changePasswordAction")
-    String changePasswordAction(@RequestParam("password") String newPassword, @RequestParam("confirmPassword") String confirmPassword) {
+    String changePasswordAction(@RequestParam("password") String newPassword, @RequestParam("confirmPassword") String confirmPassword, Model model) {
         if (!newPassword.equals(confirmPassword)) {
-            return "redirect:/records";
-        }else {
-            currentUser.setPassword(newPassword);
-            currentUser.setPasswordChanged();
-            userRepository.save(currentUser);
+            model.addAttribute("passwordMismatch", true);
+            return "/patient_password_change.html";
+        } else {
+            if (newPassword.equals(currentUser.getPassword())) {
+                model.addAttribute("samePasswordError", true);
+                return "patient_password_change.html";
+            } else {
+                currentUser.setPassword(newPassword);
+                currentUser.setPasswordChanged();
+                userRepository.save(currentUser);
 
-            return "redirect:/records";
+                return "redirect:/records";
+            }
         }
     }
 

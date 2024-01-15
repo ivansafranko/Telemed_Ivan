@@ -3,6 +3,7 @@ package com.telemed;
 import com.telemed.model.*;
 import com.telemed.model.Record;
 import com.telemed.tools.EmailSender;
+import io.micrometer.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -54,7 +55,15 @@ public class TelemedController {
     }
 
     @GetMapping("/changePasswordAction")
-    String changePasswordAction(@RequestParam("password") String newPassword, @RequestParam("confirmPassword") String confirmPassword, Model model) {
+    String changePasswordAction(@RequestParam("password") String newPassword,
+                                @RequestParam("confirmPassword") String confirmPassword,
+                                @RequestParam(value = "allowAccess", required = false) Boolean allowAccess,
+                                Model model) {
+        if (StringUtils.isBlank(newPassword) || newPassword.length() < 5) {
+            model.addAttribute("passwordLengthError", true);
+            return "patient_password_change.html";
+        }
+
         if (!newPassword.equals(confirmPassword)) {
             model.addAttribute("passwordMismatch", true);
             return "/patient_password_change.html";
@@ -63,6 +72,13 @@ public class TelemedController {
                 model.addAttribute("samePasswordError", true);
                 return "patient_password_change.html";
             } else {
+                if (allowAccess == null || !allowAccess) {
+                    model.addAttribute("accessError", true);
+                    model.addAttribute("newPassword", newPassword);
+                    model.addAttribute("confirmPassword", confirmPassword);
+                    return "patient_password_change.html";
+                }
+
                 currentUser.setPassword(newPassword);
                 currentUser.setPasswordChanged();
                 userRepository.save(currentUser);
